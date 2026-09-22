@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Змейка: Автопилот</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/style.css?v=23">
+</head>
+<body>
+<div class="bg-grid"></div>
+<div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading game">
+  <div class="loading-card">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <span data-i18n="loading">Загрузка…</span>
+  </div>
+</div>
+<div class="game-row">
+  <div class="speed-side">
+    <label class="speed-side-label" for="speedSlider" data-i18n="speed">Скорость</label>
+    <input type="range" id="speedSlider" min="0" max="100" value="22" step="1">
+    <span class="speed-readout"><span id="speedValue">6.3</span><small class="speed-unit" data-i18n="speedUnit">ход/с</small></span>
+  </div>
+  <div class="game-column">
+    <div class="header">
+      <div class="score-wrap">
+        <span class="score-label" data-i18n="score">Счёт</span>
+        <span class="score" id="score">0</span>
+      </div>
+      <div class="stats">
+        <div class="coins"><span class="coin-ico"></span> <span id="coins">0</span></div>
+        <div class="high-score"><span data-i18n="highScore">Рекорд:</span> <span id="highScore">0</span></div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="mode-chips" id="modeChips"></div>
+      <div class="icon-btns">
+        <button type="button" class="icon-btn" id="menuBtn" title="Меню (Esc)" aria-label="Меню" data-i18n-title="menuHint" data-i18n-aria-label="menu">☰</button>
+        <button type="button" class="icon-btn" id="helpBtn" title="Как играть" aria-label="Как играть" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle">❓</button>
+        <button type="button" class="icon-btn" id="shopBtn" title="Магазин" aria-label="Магазин" data-i18n-title="shopTitle" data-i18n-aria-label="shopTitle">🛍️</button>
+        <button type="button" class="icon-btn" id="muteBtn" title="Звук" aria-label="Звук" data-i18n-title="soundTitle" data-i18n-aria-label="soundTitle">🔊</button>
+        <button type="button" class="icon-btn" id="pauseBtn" title="Пауза (P)" aria-label="Пауза (P)" data-i18n-title="pauseTitle" data-i18n-aria-label="pauseTitle">⏸️</button>
+      </div>
+    </div>
+    <div class="canvas-container">
+      <canvas id="game" width="500" height="500" draggable="false" tabindex="-1" aria-label="Игровое поле" data-i18n-aria-label="gameField"></canvas>
+      <div id="fieldHint" class="field-hint hidden" aria-live="polite"></div>
+      <div id="overlay" class="overlay hidden">
+        <h2 id="overlayTitle" data-i18n="gameOver">ИГРА ОКОНЧЕНА</h2>
+        <p id="overlaySub"></p>
+        <div class="overlay-btns">
+          <button type="button" id="reviveBtn" class="ad-btn" data-i18n="revive">📺 Возродиться</button>
+          <button type="button" id="x2Btn" class="ad-btn" data-i18n="doubleScore">📺 Удвоить очки</button>
+          <button type="button" id="duelShieldBtn" class="ad-btn hidden" data-i18n="duelShieldRematch">📺 Реванш со щитом</button>
+          <button type="button" id="leaderboardBtn" class="hidden" data-i18n="leaderboard">🏆 Таблица результатов</button>
+          <button type="button" id="overlayRestart" data-i18n="newGame">Новая игра</button>
+          <button type="button" id="overlayMenu" class="secondary-btn" data-i18n="toMenu">☰ В меню</button>
+        </div>
+      </div>
+    </div>
+    <div class="hud">
+      <span id="status" data-i18n="controlsHint">← ↑ → ↓ / WASD · P — пауза</span>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="autoBtn" class="ad-btn hidden" data-i18n="autoAd">📺 Автопилот</button>
+        <button type="button" id="restartBtn" data-i18n="newGame">Новая игра</button>
+      </div>
+    </div>
+    <div class="controls-hint">
+      <span id="modeLabel" data-i18n="manualControl">🎮 Управление: ручное</span>
+    </div>
+  </div>
+</div>
+<div id="startMenu" class="menu-screen hidden" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+  <div class="menu-card">
+    <h1 id="menuTitle" class="menu-title" data-i18n="title">Змейка: Автопилот</h1>
+    <div class="menu-stats">
+      <span><span data-i18n="highScore">Рекорд:</span> <b id="menuHighScore">0</b></span>
+      <span class="coins"><span class="coin-ico"></span> <span id="menuCoins">0</span></span>
+    </div>
+    <div class="menu-main">
+      <button type="button" id="menuContinue" class="menu-play hidden">▶ Продолжить</button>
+      <div class="menu-play-row">
+        <button type="button" id="menuAuto" class="menu-play ad-btn hidden">📺 Автопилот</button>
+        <button type="button" id="menuPlay" class="menu-play" data-i18n="play">▶ Играть</button>
+      </div>
+    </div>
+    <div class="menu-row menu-duel">
+      <button type="button" id="menuDuel" class="duel-btn">⚔️ Дуэль</button>
+      <button type="button" id="menuWatch" data-i18n="menuWatch">🤖 ИИ против ИИ</button>
+    </div>
+    <div class="menu-label" data-i18n="modeLabel">Режим</div>
+    <div class="mode-chips menu-modes" id="menuModes"></div>
+    <div class="menu-grid">
+      <button type="button" id="menuShop" data-i18n="menuShop">🛍️ Магазин</button>
+      <button type="button" id="menuHelp" data-i18n="menuHelp">❓ Как играть</button>
+      <button type="button" id="menuSound">🔊 Звук: вкл</button>
+      <button type="button" id="menuLeaderboard" class="hidden" data-i18n="menuRecords">🏆 Рекорды</button>
+      <button type="button" id="menuInvite" class="hidden" data-i18n="invite">👥 Позвать друзей</button>
+    </div>
+  </div>
+</div>
+<div id="shopModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+  <div class="modal-card shop-card">
+    <div class="modal-head">
+      <h2 id="shopTitle" data-i18n="shopTitle">Магазин</h2>
+      <div class="coins"><span class="coin-ico"></span> <span id="shopCoins">0</span></div>
+      <button type="button" class="icon-btn" id="shopClose" aria-label="Закрыть магазин" data-i18n-aria-label="closeShop">✕</button>
+    </div>
+    <div class="mode-chips shop-tabs" id="shopTabs">
+      <button type="button" class="chip active" data-tab="skins" aria-pressed="true" data-i18n="shopTabSkins">🐍 Скины</button>
+      <button type="button" class="chip" data-tab="hats" aria-pressed="false" data-i18n="shopTabHats">👑 Аксессуары</button>
+      <button type="button" class="chip" data-tab="fx" aria-pressed="false" data-i18n="shopTabFx">✨ Эффекты</button>
+    </div>
+    <div id="skinList" class="skin-list"></div>
+    <p class="shop-hint" data-i18n="shopHint">Монеты начисляются за еду: +1 за обычную, +5 за бонусную ⭐, +100 за победу</p>
+  </div>
+</div>
+<div id="helpModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 id="helpTitle" data-i18n="helpTitle">Как играть</h2>
+      <button type="button" class="icon-btn" id="helpClose" aria-label="Закрыть" data-i18n-aria-label="closeHelp">✕</button>
+    </div>
+    <ul class="help-list">
+      <li data-i18n-html="helpGoal"></li>
+      <li data-i18n-html="helpControls"></li>
+      <li data-i18n-html="helpModes"></li>
+      <li data-i18n-html="helpDuel"></li>
+      <li data-i18n-html="helpCoins"></li>
+      <li data-i18n-html="helpAuto"></li>
+    </ul>
+    <p class="help-support hidden" id="helpSupport"></p>
+    <div class="help-actions">
+      <button type="button" id="helpStart" data-i18n="helpGotIt">Понятно</button>
+    </div>
+  </div>
+</div>
+<div id="dailyModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="dailyTitle">
+  <div class="modal-card daily-card">
+    <h2 id="dailyTitle" data-i18n="dailyTitle">Награда за вход</h2>
+    <p class="daily-sub" id="dailySub"></p>
+    <div class="daily-days" id="dailyDays"></div>
+    <div class="daily-actions">
+      <button type="button" id="dailyClaim"></button>
+      <button type="button" id="dailyDouble" class="ad-btn hidden"></button>
+    </div>
+    <p class="daily-note" id="dailyNote"></p>
+  </div>
+</div>
+<div id="exitModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
+  <div class="modal-card exit-card">
+    <h2 id="exitTitle" data-i18n="exitTitle">Выйти из игры?</h2>
+    <div class="exit-actions">
+      <button type="button" id="exitCancel" data-i18n="exitCancel">Остаться</button>
+      <button type="button" id="exitConfirm" class="secondary-btn" data-i18n="exitConfirm">Выйти</button>
+    </div>
+  </div>
+</div>
+<div id="autoModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="autoTitle">
+  <div class="modal-card exit-card auto-card">
+    <h2 id="autoTitle" data-i18n="autoTitle">🤖 Автопилот</h2>
+    <p class="daily-sub" id="autoSub"></p>
+    <div class="exit-actions">
+      <button type="button" id="autoAdBtn" class="ad-btn" data-i18n="autoForAd">📺 За рекламу</button>
+      <button type="button" id="autoCoinBtn"></button>
+    </div>
+    <p class="daily-note" id="autoNote"></p>
+    <button type="button" id="autoCancel" class="secondary-btn" data-i18n="autoCancel">Отмена</button>
+  </div>
+</div>
+<div id="recordsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="recordsTitle">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 id="recordsTitle" data-i18n="recordsTitle">Рекорды</h2>
+      <button type="button" class="icon-btn" id="recordsClose" aria-label="Закрыть" data-i18n-aria-label="closeRecords">✕</button>
+    </div>
+    <div class="mode-chips records-tabs" id="recordsTabs"></div>
+    <p class="records-best" id="recordsBest"></p>
+    <ol class="records-list" id="recordsList"></ol>
+    <p class="shop-hint" data-i18n="recordsHint">Очки, набранные автопилотом, в рекорды не идут</p>
+  </div>
+</div>
+<script type="module" src="js/boot.js"></script>
+</body>
+</html>

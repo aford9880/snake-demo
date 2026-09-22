@@ -1,0 +1,1 @@
+import{createPlatform as t}from"./platform/core/factory.js";import{platformConfig as r}from"./platform.config.js";import{startGame as m}from"./core/game.js";t(r).then(o=>m(o,r)).catch(o=>console.error("Boot failed",o));

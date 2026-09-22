@@ -1,0 +1,1 @@
+import{StorageService as t}from"./services.js";export class LocalStorageService extends t{constructor(e="snakeSave"){super(),this.key=e}async load(){try{const e=localStorage.getItem(this.key);return e?JSON.parse(e):null}catch{return null}}async save(e){try{return localStorage.setItem(this.key,JSON.stringify(e)),!0}catch{return!1}}}

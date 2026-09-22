@@ -1,0 +1,1 @@
+export class InterstitialPolicy{#t=0;#s=0;constructor({minIntervalMs:t=65e3,skipFirstRounds:s=1,now:i=()=>Date.now()}={}){this.minIntervalMs=t,this.skipFirstRounds=s,this.now=i}requestShow(){this.#s++;const t=this.now();return this.#s<=this.skipFirstRounds||t-this.#t<this.minIntervalMs?!1:(this.#t=t,!0)}}
